@@ -1,0 +1,13 @@
+{
+  "name": "caderno-de-revisao",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Cadernos de questões de múltipla escolha com cronômetro, histórico de notas e PDF de erros. PWA offline.",
+  "scripts": {
+    "test": "TZ=America/Sao_Paulo node --test \"tests/*.test.mjs\"",
+    "serve": "node tools/serve.mjs",
+    "icons": "node tools/gen-icons.mjs",
+    "bump": "node tools/bump-version.mjs"
+  }
+}

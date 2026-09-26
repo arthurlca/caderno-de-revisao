@@ -1,0 +1,14 @@
+node_modules/
+.DS_Store
+*.log
+
+# Dados pessoais nunca vão para o repositório público:
+# backups exportados pelo app, questões para importar e PDFs gerados
+caderno-de-revisao-backup-*.json
+*.backup.json
+*.csv
+*.tsv
+*.txt
+*.pdf
+!tests/fixtures/*.csv
+dados/
