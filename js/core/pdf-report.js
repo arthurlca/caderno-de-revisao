@@ -1,7 +1,7 @@
 // Monta o PDF de revisão de erros com o jsPDF (recebido como parâmetro, para
 // funcionar tanto no navegador quanto nos testes do Node).
 
-import { LETTERS } from './quiz-import.js';
+import { letterOf } from './quiz-import.js';
 import { errorRate, wrongsOf, attemptsOf } from './review.js';
 import { dateTime } from './format.js';
 
@@ -89,7 +89,7 @@ export function buildReport(JsPDF, { title, subtitle, generatedAt, items, mode =
       const isRight = i === q.answer;
       const isChosen = mode === 'session' && i === q.chosen && !isRight;
       const tag = isRight ? '   (correta)' : isChosen ? '   (sua resposta)' : '';
-      para(`${LETTERS[i]}) ${opt}${tag}`, {
+      para(`${letterOf(q, i)}) ${opt}${tag}`, {
         size: 10.5, indent: 4, after: 1,
         style: isRight ? 'bold' : 'normal',
         color: isRight ? GOOD : isChosen ? BAD : INK,

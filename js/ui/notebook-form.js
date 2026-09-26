@@ -2,7 +2,7 @@
 
 import * as db from '../data/db.js';
 import { decodeBytes } from '../core/csv.js';
-import { parseQuestions, dedupe, nameFromFile } from '../core/quiz-import.js';
+import { parseQuestions, dedupe, nameFromFile, letterOf } from '../core/quiz-import.js';
 import { plural } from '../core/format.js';
 import { h, icon, toast } from './dom.js';
 import { optionLine } from './common.js';
@@ -34,7 +34,7 @@ function sourceSummary(src) {
 function samplePreview(q) {
   return h('div', { class: 'sample' },
     h('p', { class: 'sample-q' }, q.question),
-    h('ol', { class: 'opts-read' }, q.options.map((o, i) => optionLine(o, i, { correct: i === q.answer }))),
+    h('ol', { class: 'opts-read' }, q.options.map((o, i) => optionLine(o, letterOf(q, i), { correct: i === q.answer }))),
     q.explanation && h('p', { class: 'muted small m0' }, q.explanation));
 }
 

@@ -3,7 +3,7 @@
 // e quando o app vai para o segundo plano.
 
 import * as db from '../data/db.js';
-import { LETTERS } from '../core/quiz-import.js';
+import { letterOf } from '../core/quiz-import.js';
 import { shuffle, pickFolderQuestions, buildSession, applyAnswers } from '../core/review.js';
 import { clock, duration, plural, slug, isoDay, dateTime } from '../core/format.js';
 import { h, icon, confirmDialog } from './dom.js';
@@ -80,7 +80,7 @@ export async function render(params, app) {
       h('p', { class: 'quiz-q' }, q.question)));
     optsEl.replaceChildren(...q.options.map((o, i) => h('li', {}, h('button', {
       type: 'button', class: 'opt', onclick: () => answer(i),
-    }, h('span', { class: 'opt-letter' }, LETTERS[i]), h('span', { class: 'opt-text' }, o)))));
+    }, h('span', { class: 'opt-letter' }, letterOf(q, i)), h('span', { class: 'opt-text' }, o)))));
     feedback.replaceChildren();
     bottom.hidden = true;
     root.classList.remove('answered');
@@ -104,7 +104,7 @@ export async function render(params, app) {
       if (j === q.answer || j === i) b.append(h('span', { class: 'opt-mark' }, icon(j === q.answer ? 'check' : 'cross')));
     });
     feedback.replaceChildren(h('div', { class: `feedback ${correct ? 'ok' : 'bad'}` },
-      h('b', {}, correct ? 'Correto!' : `Incorreto. Resposta: ${LETTERS[q.answer]}`),
+      h('b', {}, correct ? 'Correto!' : `Incorreto. Resposta: ${letterOf(q, q.answer)}`),
       q.explanation && h('p', {}, q.explanation)));
     nextBtn.textContent = idx + 1 < questions.length ? 'Próxima' : 'Ver resultado';
     bottom.hidden = false;
@@ -178,7 +178,7 @@ export async function render(params, app) {
     const k = e.key.toUpperCase();
     const q = questions[idx];
     if (chosen == null) {
-      let i = LETTERS.indexOf(k);
+      let i = q.options.findIndex((_, j) => letterOf(q, j) === k);
       if (i < 0 && /^[1-5]$/.test(k)) i = Number(k) - 1;
       if (i >= 0 && i < q.options.length) { e.preventDefault(); answer(i); }
     } else if (e.key === 'Enter' || e.key === ' ' || e.key === 'ArrowRight') {

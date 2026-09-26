@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  parseQuestions, splitOptions, stripPrefixes, resolveAnswer, dedupe, nameFromFile, SAMPLE_CSV,
+  parseQuestions, splitOptions, stripPrefixes, resolveAnswer, dedupe, nameFromFile, letterOf, SAMPLE_CSV,
 } from '../js/core/quiz-import.js';
 
 const EXAMPLE = "O objeto da contabilidade é: | [’A - Patrimonio’,’B - Lucro’,’C - Os ativos’,’D - As aziendas’,’E - As demonstrações contábeis’] | A | Segundo a CPC 00, o objeto da contabilidade é o patrimônio";
@@ -62,10 +62,27 @@ test('splitOptions: apóstrofo dentro do item, JSON, lista sem aspas', () => {
   assert.deepEqual(splitOptions(''), []);
 });
 
-test('stripPrefixes só tira quando todas têm letra em ordem', () => {
-  assert.deepEqual(stripPrefixes(['A - x', 'B - y']).texts, ['x', 'y']);
-  assert.deepEqual(stripPrefixes(['A - x', 'C - y']).texts, ['A - x', 'C - y']);
+test('stripPrefixes só tira quando todas têm letra em ordem crescente', () => {
+  assert.deepEqual(stripPrefixes(['A - x', 'B - y']), { texts: ['x', 'y'], letters: ['A', 'B'] });
+  assert.deepEqual(stripPrefixes(['C - Certo', 'E - Errado']), { texts: ['Certo', 'Errado'], letters: ['C', 'E'] });
+  assert.deepEqual(stripPrefixes(['E - x', 'C - y']).letters, null);
   assert.deepEqual(stripPrefixes(['A.C. Milan', 'Inter']).texts, ['A.C. Milan', 'Inter']);
+});
+
+test('Certo/Errado com letras C e E (estilo Cespe), CSV todo entre aspas', () => {
+  const csv = '"pergunta"|"opcoes"|"resposta"|"explicacao"\n'
+    + '"Receitas aumentam o PL."|"[""C - Certo"",""E - Errado""]"|"C"|"Sim."\n'
+    + '"Despesas aumentam o PL."|"[""C - Certo"",""E - Errado""]"|"E"|"Não."\n'
+    + '"O objeto é:"|"[""A - o patrimônio."",""B - o lucro.""]"|"A"|""\n';
+  const r = parseQuestions(csv);
+  assert.equal(r.skipped.length, 0);
+  assert.deepEqual(r.questions.map((q) => [q.options, q.answer, q.letters]), [
+    [['Certo', 'Errado'], 0, ['C', 'E']],
+    [['Certo', 'Errado'], 1, ['C', 'E']],
+    [['o patrimônio.', 'o lucro.'], 0, undefined], // letras padrão não são guardadas
+  ]);
+  assert.equal(letterOf(r.questions[1], 1), 'E');
+  assert.equal(letterOf(r.questions[2], 1), 'B');
 });
 
 test('resolveAnswer: letra, "Letra B", texto com prefixo, texto', () => {

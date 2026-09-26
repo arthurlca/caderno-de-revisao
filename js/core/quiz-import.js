@@ -71,11 +71,12 @@ function splitQuoted(s) {
 function splitPlain(s) {
   const re = /(^|[,;]\s*)([A-Ea-e])\s*[-–—).:]\s+/g;
   const cuts = [];
-  let expected = 0;
+  let last = -1;
   for (const m of s.matchAll(re)) {
-    if (m[2].toUpperCase() !== LETTERS[expected]) continue;
+    const pos = LETTERS.indexOf(m[2].toUpperCase());
+    if (pos <= last) continue; // letras em ordem crescente (A, B… ou C, E do Certo/Errado)
     cuts.push({ at: m.index, text: m.index + m[1].length });
-    expected++;
+    last = pos;
   }
   if (cuts.length >= MIN_OPTIONS && cuts[0].at === 0) {
     return cuts.map((c, i) => s.slice(c.text, i + 1 < cuts.length ? cuts[i + 1].at : s.length).trim()).filter(Boolean);
@@ -85,26 +86,42 @@ function splitPlain(s) {
 }
 
 /**
- * Tira os prefixos "A - ", "B) "... quando todas as opções os têm, em ordem.
+ * Tira os prefixos "A - ", "B) "... quando todas as opções os têm, com letras em
+ * ordem crescente. Não precisam ser seguidas: "C - Certo", "E - Errado" (estilo Cespe).
  * @returns {{texts: string[], letters: string[]|null}}
  */
 export function stripPrefixes(options) {
   const letters = [];
-  for (const [i, o] of options.entries()) {
+  let last = -1;
+  for (const o of options) {
     const m = PREFIX.exec(o);
-    if (!m || m[1].toUpperCase() !== LETTERS[i] || !o.slice(m[0].length).trim()) return { texts: options, letters: null };
-    letters.push(m[1].toUpperCase());
+    const pos = m ? LETTERS.indexOf(m[1].toUpperCase()) : -1;
+    if (!m || pos <= last || !o.slice(m[0].length).trim()) return { texts: options, letters: null };
+    letters.push(LETTERS[pos]);
+    last = pos;
   }
   return { texts: options.map((o) => o.replace(PREFIX, '').trim()), letters };
 }
 
-/** Índice da alternativa correta, ou -1. */
-export function resolveAnswer(answer, rawOptions, texts) {
+/** Letra exibida para a alternativa i (a do arquivo, ou A, B, C… pela posição). */
+export function letterOf(q, i) {
+  return q.letters?.[i] ?? LETTERS[i];
+}
+
+/** true quando as letras do arquivo são as padrão (A, B, C… em sequência). */
+const defaultLetters = (letters) => letters.every((l, i) => l === LETTERS[i]);
+
+/**
+ * Índice da alternativa correta, ou -1. Com `letters` (prefixos do arquivo), a letra
+ * da resposta é procurada entre elas; sem, vale a posição (A = 1ª).
+ */
+export function resolveAnswer(answer, rawOptions, texts, letters = null) {
   const a = String(answer ?? '').trim().replace(/^[[('"‘’“”]+|[\])'"‘’“”.]+$/g, '').trim();
   if (!a) return -1;
   const letter = /^(?:letra\s+|alternativa\s+)?([A-Ea-e])(?:\s*[-–—).:].*)?$/i.exec(a);
   if (letter) {
-    const idx = LETTERS.indexOf(letter[1].toUpperCase());
+    const L = letter[1].toUpperCase();
+    const idx = letters ? letters.indexOf(L) : LETTERS.indexOf(L);
     return idx < texts.length ? idx : -1;
   }
   if (/^[1-5]$/.test(a)) {
@@ -143,10 +160,12 @@ export function rowToQuestion(cols) {
   const raw = splitOptions(optionsRaw);
   if (raw.length < MIN_OPTIONS) return { error: `menos de ${MIN_OPTIONS} alternativas` };
   if (raw.length > MAX_OPTIONS) return { error: `mais de ${MAX_OPTIONS} alternativas (${raw.length})` };
-  const { texts } = stripPrefixes(raw);
-  const idx = resolveAnswer(answer, raw, texts);
+  const { texts, letters } = stripPrefixes(raw);
+  const idx = resolveAnswer(answer, raw, texts, letters);
   if (idx < 0) return { error: answer ? `resposta "${answer}" não corresponde a nenhuma alternativa` : 'sem resposta' };
-  return { question: { question: clean(question), options: texts.map(clean), answer: idx, explanation: clean(explanation || '') } };
+  const q = { question: clean(question), options: texts.map(clean), answer: idx, explanation: clean(explanation || '') };
+  if (letters && !defaultLetters(letters)) q.letters = letters;
+  return { question: q };
 }
 
 const clean = (s) => s.replace(/\r\n?/g, '\n').replace(/\\n/g, '\n').trim();

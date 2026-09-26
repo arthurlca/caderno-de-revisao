@@ -50,6 +50,9 @@ test('gera PDF de histórico com várias páginas e texto legível', () => {
 test('PDF da revisão marca a resposta escolhida; lista vazia não quebra', () => {
   const doc = buildReport(jsPDF, { title: 'T', generatedAt: 0, items: [item(1, { chosen: 2 })], mode: 'session' });
   assert.equal(doc.getNumberOfPages(), 1);
+  const ce = buildReport(jsPDF, { title: 'T', generatedAt: 0, items: [{ question: 'Q', options: ['Certo', 'Errado'], letters: ['C', 'E'], answer: 1, chosen: 0 }], mode: 'session' });
+  const text = Buffer.from(ce.output('arraybuffer')).toString('latin1');
+  assert.ok(ce.getNumberOfPages() === 1 && text.length > 0);
   const empty = buildReport(jsPDF, { title: 'T', generatedAt: 0, items: [] });
   assert.equal(empty.getNumberOfPages(), 1);
   const huge = buildReport(jsPDF, { title: 'T', generatedAt: 0, items: [item(1, { explanation: 'x '.repeat(6000) })] });

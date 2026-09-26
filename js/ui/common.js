@@ -1,7 +1,7 @@
 // Peças compartilhadas entre as telas: linhas das listas, histórico, questões e fluxos de criação.
 
 import * as db from '../data/db.js';
-import { LETTERS } from '../core/quiz-import.js';
+import { letterOf } from '../core/quiz-import.js';
 import { historySummary, errorReport, wrongsOf, attemptsOf } from '../core/review.js';
 import { clock, dateTime, shortDate, duration, plural, slug, isoDay } from '../core/format.js';
 import { h, icon, promptDialog, toast, actionSheet } from './dom.js';
@@ -107,9 +107,9 @@ export function historyPanel(sessions, { emptyText = 'Nenhuma revisão ainda.' }
 }
 
 /** Uma alternativa em modo leitura (lista de questões, resultado). */
-export function optionLine(text, i, { correct = false, chosen = false } = {}) {
+export function optionLine(text, letter, { correct = false, chosen = false } = {}) {
   return h('li', { class: `opt-read ${correct ? 'correct' : ''} ${chosen && !correct ? 'wrong' : ''}` },
-    h('span', { class: 'opt-letter' }, LETTERS[i]),
+    h('span', { class: 'opt-letter' }, letter),
     h('span', { class: 'opt-text' }, text),
     correct && h('span', { class: 'opt-mark' }, icon('check')),
     chosen && !correct && h('span', { class: 'opt-mark' }, icon('cross')));
@@ -123,7 +123,7 @@ export function questionDetails(q, { chosen = null, extra = null, open = false }
       h('span', { class: 'qd-text' }, q.question),
       h('span', { class: `badge ${wrongsOf(q) ? 'bad' : ''}` }, stat)),
     h('div', { class: 'qd-body' },
-      h('ol', { class: 'opts-read' }, q.options.map((o, i) => optionLine(o, i, { correct: i === q.answer, chosen: i === chosen }))),
+      h('ol', { class: 'opts-read' }, q.options.map((o, i) => optionLine(o, letterOf(q, i), { correct: i === q.answer, chosen: i === chosen }))),
       q.explanation && h('div', { class: 'expl' }, h('b', {}, 'Explicação'), h('p', {}, q.explanation)),
       extra));
 }

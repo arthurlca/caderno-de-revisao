@@ -139,6 +139,7 @@ function makeQuestion(notebookId, q, order, now) {
   return {
     id: uid(), notebookId, order,
     question: q.question, options: q.options, answer: q.answer, explanation: q.explanation || '',
+    ...(q.letters ? { letters: q.letters } : {}), // letras do arquivo, ex.: C/E no Certo/Errado
     attempts: 0, wrongs: 0, lastAnsweredAt: null, lastWrongAt: null,
     createdAt: now,
   };
