@@ -10,11 +10,13 @@ async function menu(app, folder, nNotebooks) {
   const choice = await actionSheet({
     title: folder.name,
     actions: [
+      { label: 'Importar cadernos (vários CSV)', value: 'import' },
       { label: 'Novo caderno nesta pasta', value: 'new' },
       { label: 'Renomear pasta', value: 'rename' },
       { label: 'Excluir pasta', value: 'delete', danger: true },
     ],
   });
+  if (choice === 'import') app.navigate(`#/folder/${folder.id}/import`);
   if (choice === 'new') app.navigate(`#/folder/${folder.id}/new`);
   if (choice === 'rename') {
     const name = await promptDialog({ title: 'Renomear pasta', value: folder.name });
@@ -88,7 +90,7 @@ export async function render({ id }, app) {
     h('div', { class: 'hero' },
       h('p', { class: 'muted m0 center' }, `${plural(notebooks.length, 'caderno', 'cadernos')} · ${plural(total, 'questão', 'questões')}${wrong ? ` · ${plural(wrong, 'já errada', 'já erradas')}` : ''}`)),
     reviewPanel,
-    total ? h('div', { class: 'mt' }, historyPanel(sessions, { emptyText: 'Nenhuma revisão desta pasta ainda.' })) : null,
+    total ? h('div', { class: 'mt' }, historyPanel(sessions, { emptyText: 'Nenhuma revisão desta pasta ainda.', questions, name: folder.name })) : null,
     total ? h('div', { class: 'mt' }, errorsPdfButton({
       title: folder.name, subtitle: 'Questões erradas em todos os cadernos da pasta, das mais erradas para as menos erradas.', questions,
     })) : null,
@@ -96,7 +98,9 @@ export async function render({ id }, app) {
     notebooks.length
       ? h('ul', { class: 'list' }, notebooks.map((nb) => notebookRow(nb, ov.qCount.get(nb.id), ov.lastScore.get(`notebook:${nb.id}`))))
       : h('p', { class: 'muted small pad' }, 'Nenhum caderno nesta pasta ainda.'),
-    h('div', { class: 'stack mt' }, h('a', { class: 'btn btn-block', href: `#/folder/${id}/new` }, 'Novo caderno nesta pasta')));
+    h('div', { class: 'stack mt' },
+      h('a', { class: 'btn btn-block', href: `#/folder/${id}/import` }, icon('upload'), 'Importar cadernos (vários CSV)'),
+      h('a', { class: 'btn btn-block btn-ghost', href: `#/folder/${id}/new` }, 'Novo caderno nesta pasta')));
 
   return {
     title: folder.name,

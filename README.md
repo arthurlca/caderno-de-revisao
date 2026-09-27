@@ -62,7 +62,8 @@ Em **Ajustes → Baixar CSV modelo** há um arquivo de exemplo.
 - No caderno, **⋯** permite adicionar mais questões, renomear, mover para uma pasta, zerar o histórico ou excluir.
 
 ### Revisão
-1. Toque em **Iniciar revisão**. Todas as questões do caderno aparecem em ordem aleatória, e o cronômetro começa.
+1. Escolha **Todas** ou **Só algumas** (e quantas, sorteadas entre as do caderno) e toque em **Iniciar revisão**.
+   As questões aparecem em ordem aleatória, e o cronômetro começa.
 2. Toque numa alternativa: a correta fica verde, a sua (se errada) fica vermelha, e aparece a explicação.
 3. **Próxima** até o fim. O resultado mostra nota, acertos, tempo total, a comparação com a revisão anterior e as
    questões que você errou.
@@ -75,9 +76,12 @@ Com teclado: **A–E** ou **1–5** respondem, **Enter** avança.
 - A tela do caderno mostra as **últimas 5 revisões** (gráfico da nota, média, melhor nota, tempo médio e tabela).
 - **PDF de erros**: todas as questões que você já errou em qualquer revisão, **das mais erradas para as menos**,
   com as alternativas, a correta destacada, quantas vezes errou e a explicação.
-- No resultado de uma revisão também dá para baixar o PDF só dos erros daquela revisão.
+- Na tabela das últimas 5 revisões, o botão **⤓** de cada linha baixa o PDF dos erros daquela revisão
+  (com a alternativa que você marcou). O mesmo PDF está no resultado, ao terminar.
 
 ### Pastas e revisão da pasta
+- **+ → Nova pasta**: dê o nome e escolha vários CSVs. **Cada arquivo vira um caderno**, com o nome do arquivo sem a
+  extensão (dá para mudar antes de criar). Numa pasta existente, **Importar cadernos (vários CSV)** faz o mesmo.
 - Uma pasta agrupa vários cadernos; cada caderno mantém o próprio histórico.
 - **Revisar pasta**: escolha quantas questões (até 100). Entram as de **pior desempenho** (maior taxa de erro,
   depois mais erros) entre todos os cadernos da pasta. Se você ainda não errou questões suficientes, o restante é

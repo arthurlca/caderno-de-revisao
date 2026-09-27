@@ -226,7 +226,7 @@ export function dedupe(questions, existing = []) {
 
 /** Nome sugerido para o caderno a partir do arquivo. */
 export function nameFromFile(fileName) {
-  return fileName.replace(/\.[^.]+$/, '').replace(/[_]+/g, ' ').trim();
+  return fileName.replace(/\.[^.]+$/, '').trim();
 }
 
 /** CSV de exemplo (modelo para download). */

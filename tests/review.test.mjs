@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  pickFolderQuestions, buildSession, applyAnswers, errorReport, historySummary, lastSessions, shuffle, worstFirst,
+  pickFolderQuestions, pickNotebookQuestions, sessionErrorItems, buildSession, applyAnswers, errorReport, historySummary, lastSessions, shuffle, worstFirst,
 } from '../js/core/review.js';
 import { clock, duration, slug } from '../js/core/format.js';
 
@@ -81,6 +81,25 @@ test('historySummary usa as 5 últimas', () => {
   assert.equal(h.total, 7);
   assert.equal(historySummary([]), null);
   assert.equal(lastSessions(ss, 2).length, 2);
+});
+
+test('caderno: todas ou só algumas questões', () => {
+  const qs = Array.from({ length: 10 }, (_, i) => q(`n${i}`));
+  assert.equal(pickNotebookQuestions(qs, null, seeded()).length, 10);
+  assert.equal(pickNotebookQuestions(qs, 50, seeded()).length, 10);
+  const some = pickNotebookQuestions(qs, 4, seeded());
+  assert.equal(some.length, 4);
+  assert.equal(new Set(some.map((x) => x.id)).size, 4);
+});
+
+test('sessionErrorItems: erros da revisão com a alternativa escolhida', () => {
+  const qs = [{ id: 'a', question: 'A?' }, { id: 'b', question: 'B?' }];
+  const session = { answers: [
+    { questionId: 'a', chosen: 1, correct: false },
+    { questionId: 'b', chosen: 0, correct: true },
+    { questionId: 'apagada', chosen: 2, correct: false },
+  ] };
+  assert.deepEqual(sessionErrorItems(session, qs), [{ id: 'a', question: 'A?', chosen: 1 }]);
 });
 
 test('formatação de tempo', () => {

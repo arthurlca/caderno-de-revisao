@@ -5,6 +5,7 @@ import * as homeView from './ui/home.js';
 import * as folderView from './ui/folder.js';
 import * as notebookView from './ui/notebook.js';
 import * as formView from './ui/notebook-form.js';
+import * as folderFormView from './ui/folder-form.js';
 import * as reviewView from './ui/review.js';
 import * as settingsView from './ui/settings.js';
 
@@ -15,15 +16,17 @@ const routes = [
   [/^#\/new$/, formView, 'root'],
   [/^#\/folder\/([^/]+)$/, folderView],
   [/^#\/folder\/([^/]+)\/new$/, formView, 'folder'],
+  [/^#\/new-folder$/, folderFormView, 'new'],
+  [/^#\/folder\/([^/]+)\/import$/, folderFormView, 'import'],
   [/^#\/nb\/([^/]+)$/, notebookView],
   [/^#\/nb\/([^/]+)\/import$/, formView, 'import'],
-  [/^#\/review\/nb\/([^/]+)$/, reviewView, 'notebook'],
+  [/^#\/review\/nb\/([^/]+)(?:\/(\d+))?$/, reviewView, 'notebook'],
   [/^#\/review\/folder\/([^/]+)\/(\d+)$/, reviewView, 'folder'],
   [/^#\/settings$/, settingsView],
 ];
 
 // Telas em que recarregar no meio perderia algo que você está fazendo
-const BUSY_VIEWS = new Set([reviewView, formView]);
+const BUSY_VIEWS = new Set([reviewView, formView, folderFormView]);
 
 const $view = document.getElementById('view');
 const $left = document.getElementById('tb-left');

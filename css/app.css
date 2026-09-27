@@ -275,6 +275,10 @@ details.paste summary, details.skipped summary { cursor: pointer; color: var(--a
 .src { padding: 12px 14px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); display: grid; gap: 4px; }
 .src-head { display: flex; justify-content: space-between; gap: 10px; align-items: center; }
 .src-head b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.src-name { display: flex; gap: 6px; align-items: center; margin: 4px 0; }
+.src-name .input { flex: 1; min-width: 0; }
+.src-name .icon-btn { flex: none; min-width: 44px; height: 44px; color: var(--muted); }
+.bad-text { color: var(--bad); }
 .sample { display: grid; gap: 10px; }
 .sample-q { margin: 0; font-weight: 650; white-space: pre-wrap; }
 
@@ -330,6 +334,13 @@ code { font: 0.9em ui-monospace, "SF Mono", Menlo, monospace; background: var(--
 .hist th, .hist td { padding: 8px 4px; border-bottom: 1px solid var(--border); text-align: left; }
 .hist th { color: var(--muted); font-weight: 600; font-size: 13px; }
 .hist tr:last-child td { border-bottom: 0; }
+.hist td { vertical-align: middle; }
+.hist .col-pdf { width: 44px; padding: 0; text-align: center; }
+.hist .icon-btn { min-width: 40px; height: 40px; padding: 0; color: var(--accent); }
+.hist .icon-btn:active { background: var(--surface-2); }
+.hist .icon-btn:disabled { color: var(--muted); opacity: .35; }
+.hist .icon-btn .icon { width: 20px; height: 20px; }
+@media (max-width: 380px) { .hist { font-size: 14px; } .hist th, .hist td { padding: 8px 2px; } }
 .delta { font-size: 14px; font-weight: 700; color: var(--muted); }
 .delta.up { color: var(--good); }
 .delta.down { color: var(--bad); }

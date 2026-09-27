@@ -4,18 +4,19 @@
 
 import * as db from '../data/db.js';
 import { letterOf } from '../core/quiz-import.js';
-import { shuffle, pickFolderQuestions, buildSession, applyAnswers } from '../core/review.js';
-import { clock, duration, plural, slug, isoDay, dateTime } from '../core/format.js';
+import { pickNotebookQuestions, pickFolderQuestions, buildSession, applyAnswers } from '../core/review.js';
+import { clock, duration, plural } from '../core/format.js';
 import { h, icon, confirmDialog } from './dom.js';
-import { questionDetails, scoreClass } from './common.js';
-import { exportReportPdf, loadJsPDF } from './files.js';
+import { questionDetails, scoreClass, exportSessionPdf } from './common.js';
+import { loadJsPDF } from './files.js';
 
 async function loadScope({ id, mode, arg }) {
   if (mode === 'notebook') {
     const nb = await db.getNotebook(id);
     if (!nb) return null;
     const qs = await db.listQuestions(id);
-    return { scope: 'notebook', scopeId: id, name: nb.name, back: `#/nb/${id}`, questions: shuffle(qs), sourceName: null };
+    // arg: quantas questões (só algumas); sem arg, todas
+    return { scope: 'notebook', scopeId: id, name: nb.name, back: `#/nb/${id}`, questions: pickNotebookQuestions(qs, Number(arg) || 0), sourceName: null };
   }
   const folder = await db.getFolder(id);
   if (!folder) return null;
@@ -144,13 +145,7 @@ export async function render(params, app) {
       type: 'button', class: 'btn btn-block',
       onclick: async () => {
         pdfBtn.disabled = true;
-        try {
-          await exportReportPdf(`revisao-${slug(s.name)}-${isoDay(session.finishedAt)}.pdf`, {
-            title: s.name,
-            subtitle: `Erros da revisão de ${dateTime(session.finishedAt)} · nota ${session.score}% (${session.correct}/${session.total}) · ${duration(session.durationMs)}`,
-            items: wrong, mode: 'session',
-          });
-        } finally { pdfBtn.disabled = false; }
+        try { await exportSessionPdf(session, updated, s.name); } finally { pdfBtn.disabled = false; }
       },
     }, icon('download'), 'Baixar PDF dos erros desta revisão');
 

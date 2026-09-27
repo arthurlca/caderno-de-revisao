@@ -87,6 +87,40 @@ function questionsSection(app, questions) {
       list));
 }
 
+/** Iniciar revisão: todas as questões ou só algumas (sorteadas). */
+function startPanel(app, id, total) {
+  if (total < 2) {
+    return h('a', { class: 'btn btn-primary btn-lg btn-block', href: `#/review/nb/${id}` }, icon('play'), 'Iniciar revisão');
+  }
+  let some = false;
+  let n = Math.min(10, total - 1);
+  const out = h('output', { class: 'range-value' }, n);
+  const range = h('input', {
+    type: 'range', min: 1, max: total - 1, value: n, 'aria-label': 'Número de questões',
+    oninput: (e) => { n = Number(e.target.value); update(); },
+  });
+  const picker = h('label', { class: 'field' }, h('span', {}, 'Número de questões ', out), range,
+    h('span', { class: 'muted small' }, `Sorteadas entre as ${total} do caderno.`));
+  const start = h('button', {
+    type: 'button', class: 'btn btn-primary btn-lg btn-block',
+    onclick: () => app.navigate(some ? `#/review/nb/${id}/${n}` : `#/review/nb/${id}`),
+  });
+  const segAll = h('button', { type: 'button', onclick: () => { some = false; update(); } }, `Todas (${total})`);
+  const segSome = h('button', { type: 'button', onclick: () => { some = true; update(); } }, 'Só algumas');
+  function update() {
+    out.textContent = n;
+    segAll.setAttribute('aria-pressed', String(!some));
+    segSome.setAttribute('aria-pressed', String(some));
+    picker.hidden = !some;
+    start.replaceChildren(icon('play'), some ? `Iniciar revisão (${plural(n, 'questão', 'questões')})` : 'Iniciar revisão');
+  }
+  update();
+  return h('div', { class: 'panel stack' },
+    h('div', { class: 'seg', role: 'group', 'aria-label': 'Quantas questões' }, segAll, segSome),
+    picker,
+    start);
+}
+
 export async function render({ id }, app) {
   const nb = await db.getNotebook(id);
   if (!nb) { app.navigate('#/', { replace: true }); return null; }
@@ -99,9 +133,9 @@ export async function render({ id }, app) {
       folder && h('a', { class: 'crumb', href: `#/folder/${folder.id}` }, icon('folder'), folder.name),
       h('p', { class: 'hero-count' }, h('b', {}, questions.length), questions.length === 1 ? ' questão' : ' questões'),
       questions.length
-        ? h('a', { class: 'btn btn-primary btn-lg btn-block', href: `#/review/nb/${id}` }, icon('play'), 'Iniciar revisão')
+        ? startPanel(app, id, questions.length)
         : h('a', { class: 'btn btn-primary btn-block', href: `#/nb/${id}/import` }, icon('upload'), 'Adicionar questões (CSV)')),
-    questions.length ? historyPanel(sessions, { emptyText: 'Faça a primeira revisão para acompanhar sua nota aqui.' }) : null,
+    questions.length ? historyPanel(sessions, { emptyText: 'Faça a primeira revisão para acompanhar sua nota aqui.', questions, name: nb.name }) : null,
     questions.length ? h('div', { class: 'mt' }, errorsPdfButton({
       title: nb.name, subtitle: 'Questões erradas nas revisões, das mais erradas para as menos erradas.', questions,
     })) : null,

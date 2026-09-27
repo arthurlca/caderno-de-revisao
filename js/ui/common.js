@@ -2,9 +2,9 @@
 
 import * as db from '../data/db.js';
 import { letterOf } from '../core/quiz-import.js';
-import { historySummary, errorReport, wrongsOf, attemptsOf } from '../core/review.js';
+import { historySummary, errorReport, wrongsOf, attemptsOf, sessionErrorItems } from '../core/review.js';
 import { clock, dateTime, shortDate, duration, plural, slug, isoDay } from '../core/format.js';
-import { h, icon, promptDialog, toast, actionSheet } from './dom.js';
+import { h, icon, toast, actionSheet } from './dom.js';
 import { exportReportPdf } from './files.js';
 
 /** Pastas, cadernos, número de questões e última nota de cada caderno. */
@@ -47,12 +47,32 @@ export function folderRow(folder, nNotebooks, nQuestions, last) {
     scoreBadge(last)));
 }
 
-export async function createFolderFlow(app) {
-  const name = await promptDialog({ title: 'Nova pasta', placeholder: 'Ex.: Contabilidade', confirmLabel: 'Criar' });
-  if (!name) return;
-  const folder = await db.createFolder(name);
-  toast('Pasta criada');
-  app.navigate(`#/folder/${folder.id}`);
+/** Nova pasta: tela com o nome e os CSVs (cada arquivo vira um caderno). */
+export function createFolderFlow(app) {
+  app.navigate('#/new-folder');
+}
+
+/** Gera o PDF com os erros de uma revisão. Resolve com false se não houver erros. */
+export async function exportSessionPdf(session, questions, name) {
+  const items = sessionErrorItems(session, questions);
+  if (!items.length) {
+    toast(session.correct === session.total ? 'Nenhum erro nesta revisão' : 'As questões erradas foram excluídas');
+    return false;
+  }
+  return exportReportPdf(`revisao-${slug(name)}-${isoDay(session.finishedAt)}.pdf`, {
+    title: name,
+    subtitle: `Erros da revisão de ${dateTime(session.finishedAt)} · nota ${session.score}% (${session.correct}/${session.total}) · ${duration(session.durationMs)}`,
+    items, mode: 'session',
+  });
+}
+
+/** Botão que desabilita a si mesmo enquanto a ação roda. */
+function busyButton(props, children, action) {
+  const btn = h('button', {
+    type: 'button', ...props,
+    onclick: async () => { btn.disabled = true; try { await action(); } finally { btn.disabled = false; } },
+  }, children);
+  return btn;
 }
 
 /** Escolhe uma pasta de destino. Resolve com o id, null (fora de pastas) ou undefined (cancelado). */
@@ -68,8 +88,11 @@ export async function pickFolder(currentFolderId) {
   return choice === '__root__' ? null : choice;
 }
 
-/** Painel "Últimas revisões": gráfico das notas, resumo e tabela. */
-export function historyPanel(sessions, { emptyText = 'Nenhuma revisão ainda.' } = {}) {
+/**
+ * Painel "Últimas revisões": gráfico das notas, resumo e tabela, com o PDF dos erros
+ * de cada revisão. `questions` são as questões atuais do caderno/pasta.
+ */
+export function historyPanel(sessions, { emptyText = 'Nenhuma revisão ainda.', questions = [], name = '' } = {}) {
   const sum = historySummary(sessions);
   if (!sum) {
     return h('section', { class: 'panel' }, h('h2', {}, 'Últimas revisões'), h('p', { class: 'muted small m0' }, emptyText));
@@ -96,12 +119,18 @@ export function historyPanel(sessions, { emptyText = 'Nenhuma revisão ainda.' }
       h('div', { class: 'tile' }, h('b', {}, `${sum.best}%`), h('span', {}, 'melhor')),
       h('div', { class: 'tile' }, h('b', {}, clock(sum.avgTime)), h('span', {}, 'tempo médio'))),
     h('table', { class: 'hist' },
-      h('thead', {}, h('tr', {}, h('th', {}, 'Data'), h('th', {}, 'Nota'), h('th', {}, 'Acertos'), h('th', {}, 'Tempo'))),
+      h('thead', {}, h('tr', {}, h('th', {}, 'Data'), h('th', {}, 'Nota'), h('th', {}, 'Acertos'), h('th', {}, 'Tempo'),
+        h('th', { class: 'col-pdf' }, 'PDF'))),
       h('tbody', {}, sum.last.map((s) => h('tr', {},
         h('td', {}, dateTime(s.finishedAt)),
         h('td', {}, h('b', { class: `score-text ${scoreClass(s.score)}` }, `${s.score}%`)),
         h('td', {}, `${s.correct}/${s.total}`),
-        h('td', {}, duration(s.durationMs)))))),
+        h('td', {}, duration(s.durationMs)),
+        h('td', { class: 'col-pdf' }, busyButton({
+          class: 'tb-btn icon-btn', disabled: s.correct === s.total,
+          'aria-label': `PDF dos erros da revisão de ${dateTime(s.finishedAt)}`,
+          title: s.correct === s.total ? 'Sem erros nesta revisão' : 'Baixar PDF dos erros desta revisão',
+        }, icon('download'), () => exportSessionPdf(s, questions, name))))))),
     sum.total > sum.last.length && h('p', { class: 'muted small m0' }, `${plural(sum.total, 'revisão feita', 'revisões feitas')} no total.`),
   );
 }

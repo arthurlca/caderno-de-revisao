@@ -155,6 +155,30 @@ export function createNotebook(name, folderId, questions, now = Date.now()) {
   });
 }
 
+/**
+ * Cria vários cadernos (um por arquivo) numa única transação. Com `folderName`,
+ * cria também a pasta; senão usa `folderId`.
+ * @param {{folderId?: string, folderName?: string, notebooks: {name: string, questions: object[]}[]}} p
+ * @returns {Promise<{folderId: string, notebooks: number, questions: number}>}
+ */
+export function createNotebooks({ folderId, folderName, notebooks }, now = Date.now()) {
+  return tx(['folders', 'notebooks', 'questions'], 'readwrite', (s) => {
+    let fid = folderId;
+    if (folderName) {
+      fid = uid();
+      s.folders.add({ id: fid, name: folderName.trim(), createdAt: now, updatedAt: now });
+    }
+    let nQuestions = 0;
+    for (const nb of notebooks) {
+      const id = uid();
+      s.notebooks.add({ id, name: nb.name.trim(), folderId: fid, createdAt: now, updatedAt: now });
+      nb.questions.forEach((q, i) => s.questions.add(makeQuestion(id, q, i, now)));
+      nQuestions += nb.questions.length;
+    }
+    return { folderId: fid, notebooks: notebooks.length, questions: nQuestions };
+  });
+}
+
 export function addQuestions(notebookId, questions, now = Date.now()) {
   return tx(['questions'], 'readwrite', async ({ questions: store }) => {
     const existing = await reqP(store.index('by_notebook').getAll(IDBKeyRange.only(notebookId)));

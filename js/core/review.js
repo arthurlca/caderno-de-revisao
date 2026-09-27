@@ -53,6 +53,26 @@ export function pickFolderQuestions(questions, n, rand = Math.random) {
   return shuffle(chosen, rand);
 }
 
+/**
+ * Questões da revisão de um caderno: todas, ou `n` sorteadas (sem `n` ou com `n` maior
+ * que o caderno, entram todas). A ordem é sempre embaralhada.
+ */
+export function pickNotebookQuestions(questions, n, rand = Math.random) {
+  const all = shuffle(questions, rand);
+  return n > 0 && n < all.length ? all.slice(0, n) : all;
+}
+
+/**
+ * Questões erradas numa revisão, com a alternativa escolhida, para o PDF da revisão.
+ * Questões excluídas depois da revisão ficam de fora.
+ */
+export function sessionErrorItems(session, questions) {
+  const byId = new Map(questions.map((q) => [q.id, q]));
+  return session.answers
+    .filter((a) => !a.correct && byId.has(a.questionId))
+    .map((a) => ({ ...byId.get(a.questionId), chosen: a.chosen }));
+}
+
 /** Nota em porcentagem inteira. */
 export function percent(correct, total) {
   return total ? Math.round((correct / total) * 100) : 0;

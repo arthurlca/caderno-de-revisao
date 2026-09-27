@@ -125,5 +125,6 @@ test('dedupe ignora maiúsculas, acentos e espaços', () => {
 });
 
 test('nameFromFile', () => {
-  assert.equal(nameFromFile('Contabilidade_Geral.csv'), 'Contabilidade Geral');
+  assert.equal(nameFromFile('Contabilidade_Geral.csv'), 'Contabilidade_Geral');
+  assert.equal(nameFromFile('00_Aula 1.1 (1).csv'), '00_Aula 1.1 (1)');
 });

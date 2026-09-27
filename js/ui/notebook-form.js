@@ -9,7 +9,7 @@ import { optionLine } from './common.js';
 
 const DELIM_NAMES = { '|': 'barra vertical |', '\t': 'tab', ';': 'ponto e vírgula', ',': 'vírgula' };
 
-async function readFiles(fileList) {
+export async function readFiles(fileList) {
   const out = [];
   for (const f of fileList) {
     const text = decodeBytes(await f.arrayBuffer());
@@ -18,12 +18,14 @@ async function readFiles(fileList) {
   return out;
 }
 
-function sourceSummary(src) {
-  const ok = src.questions.length;
+/** Resumo de um arquivo lido. `extra` entra abaixo do cabeçalho (ex.: campo de nome do caderno). */
+export function sourceSummary(src, { extra = null, count = src.questions.length } = {}) {
+  const ok = count;
   return h('div', { class: 'src' },
     h('div', { class: 'src-head' },
       h('b', {}, src.name),
       h('span', { class: `badge ${ok ? 'ok' : 'bad'}` }, plural(ok, 'questão', 'questões'))),
+    extra,
     ok ? h('p', { class: 'muted small m0' }, `Separador: ${DELIM_NAMES[src.delimiter]}`) : null,
     src.skipped.length ? h('details', { class: 'skipped' },
       h('summary', {}, `${plural(src.skipped.length, 'linha ignorada', 'linhas ignoradas')}`),
@@ -90,7 +92,7 @@ export async function render({ id, mode }, app) {
     const srcs = [...sources, pasted].filter(Boolean);
     const p = plan();
     preview.replaceChildren(...[
-      ...srcs.map(sourceSummary),
+      ...srcs.map((src) => sourceSummary(src)),
       p.duplicates.length ? h('label', { class: 'check' }, dupCheck,
         `Importar também ${plural(p.duplicates.length, 'questão repetida', 'questões repetidas')}`) : null,
       p.toAdd.length ? h('div', { class: 'panel' }, h('h2', {}, 'Prévia'), samplePreview(p.toAdd[0]),
