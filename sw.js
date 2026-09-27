@@ -3,7 +3,7 @@
 // do conteúdo. O navegador detecta que o sw.js mudou, instala o cache novo e
 // apaga o antigo.
 
-const VERSION = '1cbdd330c4';
+const VERSION = 'cba73e3053';
 const CACHE = `caderno-${VERSION}`;
 
 const ASSETS = [

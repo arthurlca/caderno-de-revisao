@@ -127,4 +127,11 @@ test('dedupe ignora maiúsculas, acentos e espaços', () => {
 test('nameFromFile', () => {
   assert.equal(nameFromFile('Contabilidade_Geral.csv'), 'Contabilidade_Geral');
   assert.equal(nameFromFile('00_Aula 1.1 (1).csv'), '00_Aula 1.1 (1)');
+  // extensões duplas (downloads no celular/navegador)
+  assert.equal(nameFromFile('Ortografia.csv.txt'), 'Ortografia');
+  assert.equal(nameFromFile('Ortografia.CSV.csv'), 'Ortografia');
+  assert.equal(nameFromFile('Ortografia.csv '), 'Ortografia');
+  assert.equal(nameFromFile('Aula 1.1'), 'Aula 1.1'); // ".1" não é extensão
+  assert.equal(nameFromFile('planilha.xls'), 'planilha');
+  assert.equal(nameFromFile('.csv'), '.csv');
 });

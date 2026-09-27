@@ -226,7 +226,13 @@ export function dedupe(questions, existing = []) {
 
 /** Nome sugerido para o caderno a partir do arquivo. */
 export function nameFromFile(fileName) {
-  return fileName.replace(/\.[^.]+$/, '').trim();
+  const base = String(fileName).trim();
+  // Tira todas as extensões de texto do fim: o celular às vezes salva "aula.csv.txt"
+  // ou "aula.csv.csv", e sobraria um ".csv" no nome do caderno
+  const noText = base.replace(/(\.(csv|tsv|txt|text))+$/i, '').trim();
+  if (noText !== base) return noText || base;
+  // Outra extensão (com letras, ex.: ".xls"); "Aula 1.1" fica como está
+  return base.replace(/\.(?=[a-z0-9]*[a-z])[a-z0-9]{2,5}$/i, '').trim() || base;
 }
 
 /** CSV de exemplo (modelo para download). */
